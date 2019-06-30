@@ -27,6 +27,7 @@ knitr::opts_chunk$set( warning = FALSE, message = FALSE)
 * チュートリアル
     + de Vries, R. M., & Morey, R. D. (2015). A tutorial on computing Bayes factors for singlesubject designs. Behavior Therapy, 46, 809-823.
 
+* 非表示にしているコードがあるのでrmdファイル参照
 
 ```{r}
 library(BayesSingleSub)
@@ -69,7 +70,7 @@ ypost = p1$PSWQ[13:15]
 ypost
 ```
 
-## データの視覚化  
+### 【補足】データの視覚化(1)  
 ```{r eval=FALSE, include=FALSE}
 # データセットの変数名整形とid番号追加
 library(tidyverse)
@@ -103,7 +104,7 @@ ggplot(p1, aes(x = time, y = pswq, group = id)) +
 
 ```
 
-
+### 【補足】データの視覚化(2)  
 ```{r eval=FALSE, include=FALSE}
 library(tidyverse)
 library(janitor)
@@ -166,6 +167,57 @@ BF.L.p1
 ## 標準化平均値差（δ）の事後分布
 ```{r}
 plot(output.JZS.AR.p1$chains[,2]) # 2列目の変数(= delta)を指定
+```
+
+## 【補足】すべてのシートから読み込んで1つのデータセットにする
+```{r eval=FALSE, include=FALSE}
+# Windowsではパスに日本語があるとエラーになるため、マイドキュメントなど、日本語が入らない所にプロジェクトを設定
+path <- str_c(getwd(), "/", "Dataset.xlsx") # シート名取得
+
+dat <-
+ path %>%
+  excel_sheets() %>%
+  set_names() %>%
+  map(read_excel, path = path ) %>%
+  clean_names()
+
+# パスに日本語がある場合
+# dat <-
+# "ここにフォルダのパス/Dataset.xlsx" %>%
+#   excel_sheets() %>% # シート名取得
+#   set_names() %>%    # リストに名前を設定する
+#   clean_names() %>%  # 変数名をきれいに
+#   map(read_excel, path = "ここにフォルダのパス/Dataset.xlsx")
+
+
+
+
+# 個別の対象者のデータのみ取り出したい
+dat1 <- 
+  dat$participant_1 %>%  # 1人目のデータに限定 
+  as_tibble() %>% 
+  clean_names() %>%  # 変数名をきれいに
+  rename(time = x1)  # 環境によってここが違う
+
+# dat2 <- 
+#   dat$participant_2 %>%  # 2人目のデータに限定 
+#   as_tibble() %>% 
+#   clean_names() %>%  # 変数名をきれいに
+#   rename(time = x1)
+# 
+# dat3 <- 
+#   dat$participant_3 %>%  # 3人目のデータに限定 
+#   as_tibble() %>% 
+#   clean_names() %>%  # 変数名をきれいに
+#   rename(time = x1)
+
+
+# リスト内の各データフレームに各リスト名を 変数として付与し、縦に連結
+dat_long <- 
+  bind_rows(dat, .id = "id") %>% 
+  clean_names() %>% 
+  rename(time = x1)
+
 ```
 
 
